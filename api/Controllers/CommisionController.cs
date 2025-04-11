@@ -6,14 +6,27 @@ namespace FCamara.CommissionCalculator.Controllers
     [Route("[controller]")]
     public class CommisionController : ControllerBase
     {
-        [ProducesResponseType(typeof(CommissionCalculationResponse), 200)]
         [HttpPost]
-        public IActionResult Calculate(CommissionCalculationRequest calculationRequest)
+        public IActionResult Calculate([FromBody] CommissionCalculationRequest request)
         {
-            return Ok(new CommissionCalculationResponse() { 
-                FCamaraCommissionAmount = 999,
-                CompetitorCommissionAmount = 100
-            });
+            // Ensure that the request object is valid
+            if (request == null)
+            {
+                return BadRequest("Invalid data");
+            }
+
+            var fcamaraCommission = 0.20m * request.LocalSalesCount * request.AverageSaleAmount
+                                    + 0.35m * request.ForeignSalesCount * request.AverageSaleAmount;
+            var competitorCommission = 0.02m * request.LocalSalesCount * request.AverageSaleAmount
+                                      + 0.0755m * request.ForeignSalesCount * request.AverageSaleAmount;
+
+            var response = new CommissionCalculationResponse
+            {
+                FCamaraCommissionAmount = fcamaraCommission,
+                CompetitorCommissionAmount = competitorCommission
+            };
+
+            return Ok(response);
         }
     }
 
@@ -27,7 +40,6 @@ namespace FCamara.CommissionCalculator.Controllers
     public class CommissionCalculationResponse
     {
         public decimal FCamaraCommissionAmount { get; set; }
-
         public decimal CompetitorCommissionAmount { get; set; }
     }
 }
